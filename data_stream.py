@@ -74,6 +74,18 @@ def run_spark_job(spark):
     # TODO attach a ProgressReporter
     query.awaitTermination()
 
+    # get the right radio code json path
+    radio_code_json_filepath = "radio_code.json"
+    radio_code_df = spark.read.json(radio_code_json_filepath)
+
+    # rename disposition_code column to disposition
+    radio_code_df = radio_code_df.withColumnRenamed("disposition_code", "disposition").collect()
+
+    # join on disposition column
+    join_query = agg_df.join(radio_code_df, col("agg_df.disposition") == col("radio_code_df.disposition"), "left_outer")
+
+    join_query.awaitTermination()
+
 
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
